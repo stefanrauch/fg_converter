@@ -1,5 +1,5 @@
 #include "LSAParameter.h"
-
+// comment
 
 LSAParameter::LSAParameter()
 {
