@@ -1,16 +1,13 @@
 #include "Interpolation.h"
 
-Interpolation::Interpolation(string LinFilename, string QuadFilename) : LSAtoFPGA(LinFilename,QuadFilename)
+
+Interpolation::Interpolation(string QuadFilename, string LinFilename, bool correction, double ScalingFactor, bool verbose) : LSAtoFPGA(QuadFilename, LinFilename, correction,ScalingFactor,verbose)
 {
 	Init();
 }
 
-Interpolation::Interpolation(string LinFilename, string QuadFilename, bool correction) : LSAtoFPGA(LinFilename, QuadFilename, correction)
-{
-	Init();
-}
 
-Interpolation::Interpolation(string LinFilename, string QuadFilename, bool correction, double ScalingFactor) : LSAtoFPGA(LinFilename, QuadFilename, correction,ScalingFactor)
+Interpolation::Interpolation(string QuadFilename,  bool correction, double ScalingFactor, bool verbose) : LSAtoFPGA(QuadFilename, correction,ScalingFactor,verbose)
 {
 	Init();
 }
@@ -83,6 +80,7 @@ void Interpolation::Interpolate(int index)
 	double Qnp1_trueSeq;
 	
 	
+        if(fverbose) printf("a_true= %f  b_true= %f  c_true= %f  \n", a_true,b_true,c_true);
 	//Nmax=10;
 	for(int n=0;n<=Nmax ;n++)
     	{
@@ -96,25 +94,45 @@ void Interpolation::Interpolate(int index)
 		
 		Xnp1_true=(double)((n+1)*(n+1))*a_true/2.0 +(double)(n+1)*(b_true-a_true/2.0)+c_true;
 		
-		
 		Qnp1_trueSeq=Qn_trueSeq+a_true;
 		Xnp1_trueSeq=Xn_trueSeq+Qn_trueSeq;
-		double DX= (double)Xnp1_Dcorr.Get32BValue();//Xnp1_true-Xnp1_trueSeq;
+		double Xnp1_acc_cor= (double)Xnp1_Dcorr.Get32BValue();//Xnp1_true-Xnp1_trueSeq;
+                double Xnp1_acc= (double)Xnp1_D.Get32BValue();
                 
-		//printf("n=%d  a_true= %f  b_true= %f  c_true= %f  \n",n, a_true,b_true,c_true);
-		//printf("Xnp1(true, formula) = %f  Xnp1(true, sequence) = %f   Xnp1(Accu) = %f \n \n",Xnp1_true, Xnp1_trueSeq, DX);
 		
+                if(Xnp1_acc_cor==0.0 && abs(Xnp1_true)<1.1920929e-7) 
+                {
+                    Xnp1_acc_cor=Xnp1_true;
+                    Xnp1_acc=Xnp1_true;
+                }
+                double DX=(Xnp1_true-Xnp1_acc_cor)/Xnp1_true;
+		if(fverbose) 
+                    printf("n=%d  Xnp1(true, formula) = %f  Xnp1(true, sequence) = %f   Xnp1(Accu) = %f DeltaX(ACC) = %f \n \n",n,Xnp1_true, Xnp1_trueSeq, Xnp1_acc,DX);
 		
 		//Xnp1_true=Xnp1_trueSeq;
-		deviation1=(Xnp1_true-(double)Xnp1_D.Get32BValue())/Xnp1_true;
-		
-		deviationcorr=(Xnp1_true-(double)Xnp1_Dcorr.Get32BValue())/Xnp1_true;
+		deviation1=(Xnp1_true-Xnp1_acc)/Xnp1_true;
+		if(abs(deviation1)>1) 
+                {  
+                        if(abs(Xnp1_true)<1) 
+                                deviation1=(Xnp1_acc-Xnp1_true)/Xnp1_acc;
+                        
+                }
+                
+                
+		deviationcorr=(Xnp1_true-Xnp1_acc_cor)/Xnp1_true;
+                if(abs(deviationcorr)>1) 
+                {  
+                        if(abs(Xnp1_true)<1) 
+                                deviationcorr=(Xnp1_acc_cor-Xnp1_true)/Xnp1_acc_cor;
+                        
+                }
+                
 		deviationFormulaVsSequence=(Xnp1_true-Xnp1_trueSeq)/Xnp1_true;
 		
 		// fill histograms
 		m_hXnp1_true->SetBinContent(n+1,Xnp1_true);
-		m_hXnp1_app->SetBinContent(n+1,(double)Xnp1_D.Get32BValue());
-		m_hXnp1_corr->SetBinContent(n+1,(double)Xnp1_Dcorr.Get32BValue());
+		m_hXnp1_app->SetBinContent(n+1,Xnp1_acc);
+		m_hXnp1_corr->SetBinContent(n+1,Xnp1_acc_cor);
 		m_hDeviation->SetBinContent(n+1,deviation1);
 		m_hLocalDeviation_corr->SetBinContent(n+1,deviationcorr);
 		m_hDeviation2TheoVal->SetBinContent(n+1,deviationFormulaVsSequence);
@@ -235,6 +253,16 @@ double Interpolation::GetRelativeDeviation(int index, bool correction)
 		
 		Xnp1_true=(double)((n+1)*(n+1))*a_true/2.0 +(double)(n+1)*(b_true-a_true/2.0)+c_true;
 		
+                double Xnp1_acc_cor= (double)Xnp1_Dcorr.Get32BValue();//Xnp1_true-Xnp1_trueSeq;
+                double Xnp1_acc= (double)Xnp1_D.Get32BValue();
+                
+                if(Xnp1_acc_cor==0.0 && abs(Xnp1_true)<1.1920929e-7) 
+                {
+                    Xnp1_acc_cor=Xnp1_true;
+                    Xnp1_acc=Xnp1_true;
+                }
+                
+                
 		deviation1=(Xnp1_true-(double)Xnp1_D.Get32BValue())/Xnp1_true;
 		deviationcorr=(Xnp1_true-(double)Xnp1_Dcorr.Get32BValue())/Xnp1_true;
 		

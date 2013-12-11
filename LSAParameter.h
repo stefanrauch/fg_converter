@@ -17,9 +17,7 @@ class LSAParameter
 public:
 
         LSAParameter();
-        LSAParameter(double dt, double C, double B, double A);
-        LSAParameter(double dt, double C, double B, double A, int N, int P);
-	LSAParameter(double dt, double C, double B, double A, double ScalingFactor, int N, int P);
+        LSAParameter(double dt, double C, double B, double A, double ScalingFactor=1.0, int N=0, int P=1000);
         ~LSAParameter();
 
         void ConvertLSAData(int N, int P);

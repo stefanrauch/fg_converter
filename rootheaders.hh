@@ -11,4 +11,5 @@
 #include <TH2D.h>
 #include <TF1.h>
 #include <TStyle.h>
+#include <TMath.h>
 #endif //__ROOTHEADERS_HH__

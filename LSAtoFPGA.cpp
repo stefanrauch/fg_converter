@@ -1,48 +1,27 @@
 #include "LSAtoFPGA.h"
 
-LSAtoFPGA::LSAtoFPGA(string LinFilename, string QuadFilename)
+
+LSAtoFPGA::LSAtoFPGA(string QuadFilename, string LinFilename, bool correction, double scalingFactor, bool verbose)
 {
-	
-	GetLSAData(LinFilename, QuadFilename);
-	m_correction=false;
-        InitAttribute();
-	ProcessOutput();
-}
-
-
-LSAtoFPGA::LSAtoFPGA(string LinFilename, string QuadFilename, bool correction)
-{
-	
-	GetLSAData(LinFilename, QuadFilename);
-	m_correction=correction;
-        InitAttribute();
-	ProcessOutput();
-}
-
-
-LSAtoFPGA::LSAtoFPGA(string LinFilename, string QuadFilename, bool correction, double scalingFactor)
-{
-	
-	GetLSAData(LinFilename, QuadFilename);
+        fverbose=verbose;
+	GetLSAData(QuadFilename,LinFilename);
 	m_correction=correction;
         m_ScalingFactor=scalingFactor;
         InitAttribute();
 	ProcessOutput();
 }
 
-
-
-LSAtoFPGA::LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction)
+LSAtoFPGA::LSAtoFPGA(string QuadFilename, bool correction, double scalingFactor, bool verbose)
 {
-	
-	m_LSAQuadInput=LSAQuadData;
+        fverbose=verbose;
+	GetLSAData(QuadFilename);
 	m_correction=correction;
+        m_ScalingFactor=scalingFactor;
         InitAttribute();
 	ProcessOutput();
 }
 
-
-LSAtoFPGA::LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction, double scalingFactor)
+LSAtoFPGA::LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction, double scalingFactor, bool verbose)
 {
 	
 	m_LSAQuadInput=LSAQuadData;
@@ -58,19 +37,53 @@ LSAtoFPGA::~LSAtoFPGA()
 	
 }
 
-void LSAtoFPGA::GetLSAData(string LinFilename, string QuadFilename)
+void LSAtoFPGA::GetLSAData(string QuadFilename, string LinFilename)
 {
         /// Get data from txt file
         cout<<"READ FROM TEXT FILE START"<<endl;
-	TXTDATA *LinData = new TXTDATA(LinFilename);// dt, b,a  y=ax+b
-	TXTDATA *QuadData = new TXTDATA(QuadFilename);// dt, c ,b,a  y=ax2+bx+c
-	
-	m_LSALineInput = LinData->GetVector();
-	m_LSAQuadInput = QuadData->GetVector();
-	delete LinData;
-	delete QuadData;
+        
+        if(!LinFilename.empty()) 
+            m_LSALineInput = GetFile(LinFilename);// dt, b,a  y=ax+b
+        if(!QuadFilename.empty()) 
+            m_LSAQuadInput = GetFile(QuadFilename);// dt, c ,b,a  y=ax2+bx+c
+        
         cout<<"READ FROM TEXT FILE END"<<endl;
 }
+
+
+vector< vector<double> >  LSAtoFPGA::GetFile(string Filename)
+{
+    vector< vector<double> > vect;
+    TXTDATA *Data = new TXTDATA(Filename);
+    vect = Data->GetVector();
+    delete Data;
+    return vect;
+}
+
+
+void LSAtoFPGA::WritetToFile(string OutputName)
+{
+        ofstream output (OutputName.c_str());
+        const string space("   ");
+
+        if (!output.is_open())
+                cout << "Error : Cannot write in file "<< OutputName << endl;
+        else
+        {
+                for (int i = 0; i < m_TheoValueSet.size(); i++)
+                {
+                    output  <<i<<space
+                            <<m_a_intValSet[i][0]<<space<<m_a_intValSet[i][1]<<space
+                            <<m_b_intValSet[i][0]<<space<<m_b_intValSet[i][1]<<space
+                            <<m_c_intValSet[i]<<space
+                            << m_Nstep<<endl;
+                }
+        }
+
+        output.close();
+
+}
+
 
 void LSAtoFPGA::InitAttribute()
 {
@@ -166,7 +179,7 @@ void LSAtoFPGA::ProcessOutput()
                 m_NumbFreq_out[i]=GetNfreqOutput(i);
 		//if(i==0 || i==2) PrintParameters(i);
 		//cout<<i<<endl;
-                PrintParameters(i);
+                if(fverbose) PrintParameters(i);
 	}
 }
 

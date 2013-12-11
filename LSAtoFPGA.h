@@ -6,12 +6,10 @@
 #include <string>
 #include <vector>
 #include <cmath>
-//#include "TMath.h"// need ROOT library!
 #include "TXTDATA.h"// My class for reading text files need boost library!
 
 #include "Accumulator64B.h"
 #include "LSAParameter.h"
-//#include "rootheaders.hh"
 
 using namespace std;
 
@@ -20,13 +18,15 @@ class LSAtoFPGA
 {
 public:
 
-	LSAtoFPGA(string LinFilename, string QuadFilename);
-        LSAtoFPGA(string LinFilename, string QuadFilename, bool correction);
-        LSAtoFPGA(string LinFilename, string QuadFilename, bool correction, double scalingFactor);
-        LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction);
-        LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction, double scalingFactor);
+	//LSAtoFPGA(string QuadFilename, string LinFilename);
+        //LSAtoFPGA(string LinFilename, string QuadFilename, bool correction);
+        LSAtoFPGA(string QuadFilename, string LinFilename, bool correction=true, double scalingFactor=1.0, bool verbose=false);
+        LSAtoFPGA(string QuadFilename, bool correction=true, double scalingFactor=1.0, bool verbose=false);
+        
+        LSAtoFPGA(const vector< vector<double> >& LSAQuadData, bool correction=true, double scalingFactor=1.0, bool verbose=false);
         void PrintParameters(int index);
-	~LSAtoFPGA();
+	void WritetToFile(string OutputName);
+        ~LSAtoFPGA();
         
 
 private:
@@ -38,10 +38,13 @@ private:
 	vector<int> m_Nfpga;
 	int m_Nindex;
         
+        
 	
 protected:
 	
-        void GetLSAData(string LinFilename, string QuadFilename);
+        bool fverbose;
+        void GetLSAData(string QuadFilename, string LinFilename="" );
+        vector< vector<double> > GetFile(string Filename);
         void InitAttribute();
         void GetSeqPar(int i, int N, int P);
         bool CheckNval(int N);

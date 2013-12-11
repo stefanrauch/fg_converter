@@ -5,26 +5,24 @@ OS_NAME:=$(shell uname -s | tr A-Z a-z)
 ifeq ($(OS_NAME),darwin)
 STDINCDIR := -I/opt/local/include
 STDLIBDIR := -L/opt/local/lib
+# for boost (temporary)
+BOOSTINCDIR := -I/Users/winckler/subversion/FairRoot/FairSoft/include
+BOOSTLIBDIR := -L/Users/winckler/subversion/FairRoot/FairSoft/lib	
 else
 STDINCDIR := 
 STDLIBDIR := 
+BOOSTINCDIR :=
+BOOSTLIBDIR :=
 endif
 
-#ROOFITINCDIR1 := -I$(ROOTSYS)/roofit/roofitcore/inc
-#ROOFITINCDIR2 := -I$(ROOTSYS)/roofit/roofit/inc
-#$(ROOFITINCDIR1) $(ROOFITINCDIR2)
-
-CPPFLAGS := $(shell root-config --cflags) $(STDINCDIR) -I/Users/winckler/subversion/FairRoot/FairSoft/include
-LDFLAGS := $(shell root-config --glibs) $(STDLIBDIR) -lRooFit -lRooFitCore -lMinuit -lFoam -lRooStats -L/Users/winckler/subversion/FairRoot/FairSoft/lib
+CPPFLAGS := $(shell root-config --cflags) $(STDINCDIR) $(BOOSTINCDIR)
+LDFLAGS := $(shell root-config --glibs) $(STDLIBDIR) $(BOOSTLIBDIR)
 
 CPPFLAGS += -g
 
-TARGET = Analysis
+TARGET = Convert
 
-#SRC = Myfunction.cpp osc2012_tools.cpp Analysis.cpp main.cpp
-#SRC = Interpolation.cpp PrepareLSAinput.cpp TXTDATA.cpp Accumulator64B.cpp main.cpp
 SRC = Interpolation.cpp LSAParameter.cpp LSAtoFPGA.cpp TXTDATA.cpp Accumulator64B.cpp main.cpp
-#SRC = LSAParameter.cpp main.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

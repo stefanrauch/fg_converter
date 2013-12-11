@@ -9,9 +9,8 @@ using namespace std;
 class Interpolation : public LSAtoFPGA
 {
 public:
-	Interpolation(string LinFilename, string QuadFilename);
-        Interpolation(string LinFilename, string QuadFilename, bool correction);
-	Interpolation(string LinFilename, string QuadFilename, bool correction, double ScalingFactor);
+	Interpolation(string QuadFilename, string LinFilename, bool correction=true, double ScalingFactor=1.0, bool verbose=false);
+	Interpolation(string QuadFilename, bool correction=true, double ScalingFactor=1.0, bool verbose=false);
 	
         ~Interpolation();
 	void Interpolate(int index);

@@ -90,11 +90,22 @@ Accumulator64B::~Accumulator64B()
 Accumulator64B Accumulator64B::operator+(const Accumulator64B& v1) 
 {
 	Accumulator64B result;
-        //int32_t sum=this->Get32BValue()+v1.Get32BValue();
-        //if(sum<-8388608 || sum>8388607) cout<<"OVERFLOW!!"<<endl;
-	result.m_saccu = this->m_saccu+v1.m_saccu;
-	result.m_value = this->m_value+v1.m_value;
-	
+       
+        double sum=(double)(this->m_saccu)+(double)(v1.m_saccu);
+        if(abs(sum)<=(double)(pow(2.0,63.0)-1)) 
+                result.m_saccu = this->m_saccu+v1.m_saccu;
+        else
+        {
+            cout<<"*** Warning : OVERFLOW!!"<<endl;
+            //if(sum>0.0) result.m_saccu =(int64_t)(pow(2.0,63.0)-1);
+            //else result.m_saccu =(int64_t)(1-pow(2.0,63.0));
+            
+            if(abs((double)(this->m_saccu))>=abs((double)(v1.m_saccu)))
+                result.m_saccu = this->m_saccu;
+            else 
+                result.m_saccu = v1.m_saccu;
+        }
+        result.m_value = this->m_value+v1.m_value;
         return result;
 }
 

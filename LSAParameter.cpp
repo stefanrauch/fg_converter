@@ -1,25 +1,10 @@
 #include "LSAParameter.h"
-// comment
 
 LSAParameter::LSAParameter()
 {
 	m_ScalingFactor=1.0;
         InitAttribute(0, 0, 0, 0);
 	ConvertLSAData(0, 1);
-}
-
-LSAParameter::LSAParameter(double dt, double C, double B, double A)
-{
-	m_ScalingFactor=1.0;
-        InitAttribute(dt, C, B, A);
-	ConvertLSAData(0, m_Nstep);
-}
-
-LSAParameter::LSAParameter(double dt, double C, double B, double A, int N, int P)
-{
-	m_ScalingFactor=1.0;
-        InitAttribute(dt, C, B, A);
-	ConvertLSAData(N, P);
 }
 
 
@@ -65,6 +50,7 @@ void LSAParameter::ConvertLSAData(int N, int P)
 	double dt_temp;
 	double XN_temp;
 	double XNpP_temp;
+        double XNpP_app;
 	double DeltaXNpP;
 	double RelDev;
 	double N_temp=(double)N;
@@ -114,6 +100,9 @@ void LSAParameter::ConvertLSAData(int N, int P)
         // c approx
         m_ApprValues.push_back((double) m_c_intVal);
         
+        XNpP_app=GetXN(m_ApprValues[0], m_ApprValues[1], m_ApprValues[2], P_temp);
+        m_ApprValues.push_back(XNpP_app);
+        
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// store deviation
         
@@ -125,7 +114,16 @@ void LSAParameter::ConvertLSAData(int N, int P)
 	DeltaXNpP=GetXN(m_Deviation[0], m_Deviation[1], m_Deviation[2], P_temp);
 	// DeltaXN/XN
         RelDev=DeltaXNpP/XNpP_temp;
-        
+        if(abs(RelDev)>1) 
+        {  
+            if(abs(XNpP_temp)<1) 
+                RelDev=-DeltaXNpP/XNpP_app;
+            //cout<<"abs(RelDev)>1"<<endl; 
+            //cout<<"XNpP_temp="<<XNpP_temp<<endl;
+            
+            //cout<<"DeltaXNpP="<<DeltaXNpP<<endl;
+            //PrintAll();
+        }
 	m_Deviation.push_back(DeltaXNpP);
 	m_Deviation.push_back(RelDev);
 	
@@ -137,6 +135,7 @@ void LSAParameter::ConvertLSAData(int N, int P)
 	m_Accu64BData.push_back(a_app);
 	m_Accu64BData.push_back(b_app);
 	m_Accu64BData.push_back(c_app);
+        
 }
 
 void LSAParameter::CorrectDeviation()
@@ -194,6 +193,7 @@ void LSAParameter::CorrectDeviation()
                 m_Deviation[4]=m_Deviation[3]/m_TheoValues[3];
                 Accumulator64B b_app(m_b_intVal[0],m_b_intVal[1]);
                 m_Accu64BData[1]=b_app;
+                cout<<"AccuDeviation="<<AccuDeviation<<endl;
         }
 }
 
@@ -340,7 +340,7 @@ double LSAParameter::GetAccuDeviation(const vector<Accumulator64B>& ParABC)
                         Xnp1_D=Xn_D+Qn_D; // X_n+1 = Qn + Xn
                         
                         Xnp1_true=(double)((n+1)*(n+1))*a_true/2.0 +(double)(n+1)*(b_true-a_true/2.0)+c_true;
-                        deviation=(Xnp1_true-(double)Xnp1_D.Get32BValue())/Xnp1_true;
+                        deviation=Xnp1_true-(double)Xnp1_D.Get32BValue();
                         
                         // Increment
                         Qn_D=Qnp1_D;
