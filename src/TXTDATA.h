@@ -1,4 +1,3 @@
-
 #ifndef TXTDATA_H
 #define TXTDATA_H
 //#include "DATA.h"
