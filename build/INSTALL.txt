@@ -1,0 +1,5 @@
+Prerequisite packages : ROOT, BOOST
+In the build directory do:
+~/fg_converter/build$ cmake .. -G "Unix Makefiles"
+~/fg_converter/build$ make
+~/fg_converter/build$ ./bin/Convert -I Input -O Output -P ScalingPow
